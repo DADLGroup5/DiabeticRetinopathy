@@ -15,6 +15,7 @@ import pandas as pd
 import seaborn as sn
 
 import random
+from pandas_ml import ConfusionMatrix
 from keras.optimizers import SGD
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
@@ -67,8 +68,6 @@ from sklearn.utils import shuffle
 Data,Label= shuffle(data,classes, random_state=2)
 train_data=[Data,Label]
 type(train_data)
-
-
 
 learning_rate=0.00009
 #batch_size to train
@@ -214,35 +213,3 @@ plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
 plt.savefig('LossVS.png')
 plt.show()
-
-"""
-#visualizing layerwise :
-
-from theano import *
-output_layer=model.layers[0].get_output()
-output_fn=theano.function([model.layers[0].get_input()],output_layer)
-
-input_image=X_train[0:1,:,:,:]
-print(input_image.shape)
-
-plt.imshow(input_image[0,0,:,:], cmap='gray')
-plt.imshow(input_image[0,0,:,:])
-
-output_image=output_fn(input_image)
-print(output_image.shape)
-
-output_image=np.rollaxis(np.rollaxis(output_image,3,1),3,1)
-print(output_image.shape)
-
-fig=plt.figure(figsize=(8,8))
-for i in range(32):
-    ax=fig.add_subplot(6,6,i+1)
-    
-    ax.imshow(output_image[0,:,:,i],cmap=matplotlib.cm.gray)
-    plt.xticks(np.array([]))
-    plt.yticks(np.array([]))
-    plt.tight_layout()
-    
-plt
-
-"""
