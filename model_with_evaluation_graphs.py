@@ -1,5 +1,5 @@
-
-#libraries importing  for the project NUS
+#Deep learning model to classify diabetic retinopathic eyes as either mild or severes
+#Importing the necessary libraries
 import matplotlib.pyplot as plt
 
 from keras.preprocessing.image import ImageDataGenerator, img_to_array
@@ -15,12 +15,26 @@ import pandas as pd
 import seaborn as sn
 
 import random
-from pandas_ml import ConfusionMatrix
 from keras.optimizers import SGD
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD,RMSprop,adam
+from keras.layers.convolutional import Convolution2D , MaxPooling2D
+from keras.optimizers import SGD , RMSprop , adam
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.utils import shuffle
+
+from keras.preprocessing.image import ImageDataGenerator
+
+from keras.layers.normalization import BatchNormalization
+from keras.models import Sequential
+from keras.layers.normalization import BatchNormalization
+from keras.layers.convolutional import Conv2D , MaxPooling2D
+from keras.layers.core import Activation , Flatten , Dense , Dropout
+from keras import backend as k 
+
+
 
 #path to our dataset
 dataset = 'C:/train/'
@@ -33,7 +47,7 @@ HARD_EPOCHS = 100               #hardcoded below
 IMAGE_DIMENSION = (96,96,3)     #3 channel rgb image 
 BATCHSIZE = 32                  #hardcoded it below          
 data = []                       #for parsing the image with labels , list
-classes = []                    #considering our 4 classes (mild ,moderate , medium ,advanced)
+classes = []                    #considering our 2 classes - mild and severe
 
 imagepaths = sorted(list(paths.list_images(dataset)))   
 random.seed(42)
@@ -56,26 +70,25 @@ labels = np.array(classes)
 lb = LabelBinarizer()
 labels = lb.fit_transform(labels)
 
-
-#kaggle vali info 
-
 img_rows,img_cols= 200,200 
 
 data=np.asarray(data)
 classes=np.asarray(labels)
 
-from sklearn.utils import shuffle
 Data,Label= shuffle(data,classes, random_state=2)
 train_data=[Data,Label]
 type(train_data)
 
-learning_rate=0.00009
+learning_rate = 0.00009
 #batch_size to train
 batch_size = 10
 # number of output classes
 nb_classes = 2
 # number of epochs to train
-nb_epoch = 100
+nb_epoch = 7
+
+steps_per_epoch = 800
+validation_steps = 200
 
 opt= SGD(lr=learning_rate, decay= learning_rate/ nb_epoch)
 # number of convolutional filters to use
@@ -86,9 +99,6 @@ nb_pool = 2
 nb_conv = 3
 (X, y) = (train_data[0],train_data[1])
 
-
-
-from sklearn.model_selection import train_test_split
 
 # STEP 1: split X and y into training and testing sets
 
@@ -112,21 +122,10 @@ X_test /= 255
 print('X_train shape:', X_train.shape)
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
-
-
-from keras.layers.normalization import BatchNormalization
-from keras.models import Sequential
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers.core import Activation, Flatten,Dense , Dropout
-from keras import backend as k 
-
-
 print(y_train.shape)
 
-
+#Model
 model = Sequential()
-
 model.add(Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=X_train[0].shape))
 model.add(Conv2D(32, (3, 3), activation='relu'))
 model.add(MaxPooling2D())
@@ -150,9 +149,6 @@ model.add(Dense(activation='softmax', units=2))
 model.compile(loss='sparse_categorical_crossentropy', optimizer = opt, metrics=["accuracy"])
 model.summary()
 
-
-from keras.preprocessing.image import ImageDataGenerator
-
 # create generators  - training data will be augmented images
 validationdatagenerator = ImageDataGenerator()
 traindatagenerator = ImageDataGenerator(width_shift_range=0.1,height_shift_range=0.1,rotation_range=15,zoom_range=0.1 )
@@ -161,12 +157,12 @@ batchsize=8
 train_generator=traindatagenerator.flow(X_train, y_train, batch_size=batchsize) 
 validation_generator=validationdatagenerator.flow(X_test, y_test,batch_size=batchsize)
 
-ns_probs = [0 for _ in range(len(y_test))]
-
-history = model.fit_generator(train_generator, steps_per_epoch=2, epochs=1, 
-                    validation_data=validation_generator, validation_steps=1)
+history = model.fit_generator(train_generator, steps_per_epoch = steps_per_epoch, epochs = nb_epoch, 
+                    validation_data=validation_generator, validation_steps = validation_steps)
 
 #ROC Curve code
+ns_probs = [0 for _ in range(len(y_test))]
+
 y_pred = model.predict(X_test)
 
 #Keeping only positive outcome probabilities
@@ -201,10 +197,10 @@ plt.legend(['Train', 'Test'], loc='upper left')
 plt.savefig('AccuracyVS.png')
 plt.show()
 
+#Training loss vs Validation loss
 training_loss = history.history['loss']
 validation_loss = history.history['val_loss']
 
-#Training loss vs Validation loss
 plt.plot(training_loss)
 plt.plot(validation_loss)
 plt.title('Model loss')
