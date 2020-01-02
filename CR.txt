@@ -1,0 +1,10 @@
+#Classification Report
+              precision    recall  f1-score   
+
+        mild       0.79      0.81      0.80       
+      severe       0.82      0.80      0.81       
+
+#Confusion matrix
+[[225  53]
+[ 61 249]]
+ 
