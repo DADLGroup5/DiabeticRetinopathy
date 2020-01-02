@@ -19,7 +19,3 @@ for root,dirs,files in os.walk(mypath,topdown=False):
                 except Exception as e:
                     print (e)
                     
-                    
-                                        
-                    
-                    
